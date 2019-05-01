@@ -7,6 +7,7 @@ defmodule ChitChatWeb.Router do
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug ChitChat.Auth
   end
 
   pipeline :api do
@@ -17,8 +18,11 @@ defmodule ChitChatWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    get "/login", SessionController, :new
+    get "/logout", SessionController, :delete
     resources "/rooms", RoomController
-    resources "/users", UserController
+    resources "/users/", UserController
+    resources "/sessions", SessionController, only: [:new, :create, :delete], singleton: true
   end
 
   # Other scopes may use custom stacks.

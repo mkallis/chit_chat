@@ -79,7 +79,7 @@ defmodule ChitChat.Accounts do
       else
         &Credential.registration_changeset/2
       end
-    
+
     user
     |> User.changeset(attrs)
     |> Ecto.Changeset.cast_assoc(:credential, with: cred_changeset)
@@ -116,6 +116,23 @@ defmodule ChitChat.Accounts do
   end
 
   alias ChitChat.Accounts.Credential
+
+  def authenticate_by_email_password(email, given_pass) do
+    cred = Repo.get_by(Credential, email: email) |> Repo.preload(:user)
+
+    cond do
+      # Correct user credentials
+      cred && checkpw(given_pass, cred.password_hash) ->
+        {:ok, cred.user}
+      # Had email in db, but password doesn't match
+      cred ->
+        {:error, :unauthorized}
+      # No user exists
+      true ->
+        dummy_checkpw()
+        {:error, :not_found}
+    end
+  end
 
   @doc """
   Returns the list of credentials.
